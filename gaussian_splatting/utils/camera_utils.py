@@ -1,7 +1,8 @@
-import torch
-import torch.nn as nn
 import math
 import numpy as np
+import torch
+import torch.nn as nn
+
 
 def parse_camera(params):
     H = params[:, 0]
@@ -21,7 +22,7 @@ def to_viewpoint_camera(camera):
     return camera
 
 class Camera(nn.Module):
-    def __init__(self, width, height, intrinsic, c2w, znear=0.1, zfar=100., trans=np.array([0.0, 0.0, 0.0]), scale=1.0):
+    def __init__(self, width, height, intrinsic, c2w, znear=0.1, zfar=100.):
         super(Camera, self).__init__()
         device = c2w.device
         self.znear = znear

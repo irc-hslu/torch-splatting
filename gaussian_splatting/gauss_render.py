@@ -1,8 +1,7 @@
-import pdb
+import torch
 import torch
 import torch.nn as nn
-import math
-from einops import reduce
+
 
 def inverse_sigmoid(x):
     return torch.log(x/(1-x))
@@ -115,8 +114,7 @@ def build_covariance_2d(
 def projection_ndc(points, viewmatrix, projmatrix):
     points_o = homogeneous(points) # object space
     points_h = points_o @ viewmatrix @ projmatrix # screen space # RHS
-    p_w = 1.0 / (points_h[..., -1:] + 0.000001)
-    p_proj = points_h * p_w
+    p_proj = points_h / (points_h[..., -1:] + 0.000001)
     p_view = points_o @ viewmatrix
     in_mask = p_view[..., 2] >= 0.2
     return p_proj, p_view, in_mask
