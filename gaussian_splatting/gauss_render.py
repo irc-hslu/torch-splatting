@@ -111,12 +111,12 @@ def build_covariance_2d(
     return cov2d[:, :2, :2] + filter[None]
 
 
-def projection_ndc(points, viewmatrix, projmatrix):
+def projection_ndc(points, viewmatrix, projmatrix, depth_thresh: float = 0.2):
     points_o = homogeneous(points) # object space
     points_h = points_o @ viewmatrix @ projmatrix # screen space # RHS
     p_proj = points_h / (points_h[..., -1:] + 0.000001)
     p_view = points_o @ viewmatrix
-    in_mask = p_view[..., 2] >= 0.2
+    in_mask = p_view[..., 2] >= depth_thresh
     return p_proj, p_view, in_mask
 
 

@@ -1,8 +1,7 @@
-import math
-import numpy as np
 import torch
 import torch.nn as nn
-
+import math
+import numpy as np
 
 def parse_camera(params):
     H = params[:, 0]
@@ -22,20 +21,25 @@ def to_viewpoint_camera(camera):
     return camera
 
 class Camera(nn.Module):
-    def __init__(self, width, height, intrinsic, c2w, znear=0.1, zfar=100.):
+    def __init__(self, width, height, focal_length, c2w, znear=0.1, zfar=100.):
         super(Camera, self).__init__()
         device = c2w.device
         self.znear = znear
         self.zfar = zfar
-        self.focal_x, self.focal_y = intrinsic[0, 0], intrinsic[1, 1]
+        self.focal_x, self.focal_y = torch.unbind(focal_length.squeeze(), dim=-1)
         self.FoVx = focal2fov(self.focal_x, width)
         self.FoVy = focal2fov(self.focal_y, height)
         self.image_width = int(width)
         self.image_height = int(height)
         self.world_view_transform = torch.linalg.inv(c2w).permute(1,0)
-        self.intrinsic = intrinsic
+        self.intrinsic = torch.tensor([
+            [self.focal_x.squeeze().item(), 0.0, width / 2.0],
+            [0.0, self.focal_y.squeeze().item(), height / 2.0],
+            [0.0, 0.0, 1.0],
+        ]).to(focal_length)
         self.c2w = c2w
-        self.projection_matrix = getProjectionMatrix(znear=self.znear, zfar=self.zfar, fovX=self.FoVx, fovY=self.FoVy).transpose(0,1).to(device)
+        self.projection_matrix = (getProjectionMatrix(znear=self.znear, zfar=self.zfar, fovX=self.FoVx, fovY=self.FoVy)
+                                  .transpose(0,1).to(device))
         self.full_proj_transform = self.world_view_transform @ self.projection_matrix
         self.camera_center = self.world_view_transform.inverse()[3, :3]
 
