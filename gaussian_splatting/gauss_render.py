@@ -54,7 +54,7 @@ def build_scaling_rotation(s, r, device: Union[torch.device, str] = 'cuda'):
 
 
 def strip_lowerdiag(L):
-    uncertainty = torch.zeros((L.shape[0], 6), dtype=torch.float, device="cuda")
+    uncertainty = torch.zeros((L.shape[0], 6), dtype=torch.float, device=L.device)
     uncertainty[:, 0] = L[:, 0, 0]
     uncertainty[:, 1] = L[:, 0, 1]
     uncertainty[:, 2] = L[:, 0, 2]
@@ -133,10 +133,10 @@ def get_radius(cov2d):
 def get_rect(pix_coord, radii, width, height):
     rect_min = (pix_coord - radii[:, None])
     rect_max = (pix_coord + radii[:, None])
-    rect_min[..., 0] = rect_min[..., 0].clip(0, width - 1.0)
-    rect_min[..., 1] = rect_min[..., 1].clip(0, height - 1.0)
-    rect_max[..., 0] = rect_max[..., 0].clip(0, width - 1.0)
-    rect_max[..., 1] = rect_max[..., 1].clip(0, height - 1.0)
+    rect_min[..., 0].clip_(0, width - 1.0)
+    rect_min[..., 1].clip_(0, height - 1.0)
+    rect_max[..., 0].clip_(0, width - 1.0)
+    rect_max[..., 1].clip_(0, height - 1.0)
     return rect_min, rect_max
 
 
@@ -156,13 +156,13 @@ class GaussRenderer(nn.Module):
     >>> out = gaussRender(pc=gaussModel, camera=camera)
     """
 
-    def __init__(self, active_sh_degree=3, white_bkgd=True, **kwargs):
+    def __init__(self, active_sh_degree=3, white_bkgd=True, device='cuda', **kwargs):
         super(GaussRenderer, self).__init__()
         self.active_sh_degree = active_sh_degree
         self.debug = False
         self.white_bkgd = white_bkgd
-        self.pix_coord = torch.stack(torch.meshgrid(torch.arange(256), torch.arange(256), indexing='xy'), dim=-1).to(
-            'cuda')
+        self.pix_coord = (torch.stack(torch.meshgrid(torch.arange(256), torch.arange(256), indexing='xy'), dim=-1)
+                          .to(device))
 
     def build_color(self, means3D, shs, camera):
         rays_o = camera.camera_center
@@ -171,13 +171,13 @@ class GaussRenderer(nn.Module):
         color = (color + 0.5).clip(min=0.0)
         return color
 
-    def render(self, camera, means2D, cov2d, color, opacity, depths):
+    def render(self, camera, means2D, cov2d, color, opacity, depths, device='cuda'):
         radii = get_radius(cov2d)
         rect = get_rect(means2D, radii, width=camera.image_width, height=camera.image_height)
 
-        self.render_color = torch.ones(*self.pix_coord.shape[:2], 3).to('cuda')
-        self.render_depth = torch.zeros(*self.pix_coord.shape[:2], 1).to('cuda')
-        self.render_alpha = torch.zeros(*self.pix_coord.shape[:2], 1).to('cuda')
+        self.render_color = torch.ones(*self.pix_coord.shape[:2], 3).to(device)
+        self.render_depth = torch.zeros(*self.pix_coord.shape[:2], 1).to(device)
+        self.render_alpha = torch.zeros(*self.pix_coord.shape[:2], 1).to(device)
 
         TILE_SIZE = 64
         for h in range(0, camera.image_height, TILE_SIZE):
