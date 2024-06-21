@@ -1,8 +1,10 @@
-import torch
 import random
 from typing import BinaryIO, Dict, List, Optional, Union
+
 import numpy as np
-from  gaussian_splatting.utils.camera_utils import parse_camera
+import torch
+
+from ants.torchsplatting.gaussian_splatting.utils.camera_utils import parse_camera
 
 
 def get_rays_single_image(H, W, intrinsics, c2w, render_stride=1):
