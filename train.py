@@ -1,17 +1,17 @@
-import torch
-import numpy as np
-import gaussian_splatting.utils as utils
-from gaussian_splatting.trainer import Trainer
-import gaussian_splatting.utils.loss_utils as loss_utils
-from gaussian_splatting.utils.data_utils import read_all
-from gaussian_splatting.utils.camera_utils import to_viewpoint_camera
-from gaussian_splatting.utils.point_utils import get_point_clouds
-from gaussian_splatting.gauss_model import GaussModel
-from gaussian_splatting.gauss_render import GaussRenderer
-
 import contextlib
 
+import numpy as np
+import torch
 from torch.profiler import profile, ProfilerActivity
+
+import gaussian_splatting.utils as utils
+import gaussian_splatting.utils.loss_utils as loss_utils
+from ants.torchsplatting.gaussian_splatting.gauss_model import GaussModel
+from ants.torchsplatting.gaussian_splatting.gauss_render import GaussRenderer
+from ants.torchsplatting.gaussian_splatting.trainer import Trainer
+from ants.torchsplatting.gaussian_splatting.utils.camera_utils import to_viewpoint_camera
+from ants.torchsplatting.gaussian_splatting.utils.data_utils import read_all
+from ants.torchsplatting.gaussian_splatting.utils.point_utils import get_point_clouds
 
 USE_GPU_PYTORCH = True
 USE_PROFILE = False

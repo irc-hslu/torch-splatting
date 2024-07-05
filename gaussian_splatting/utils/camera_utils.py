@@ -1,7 +1,9 @@
+import math
+
+import numpy as np
 import torch
 import torch.nn as nn
-import math
-import numpy as np
+
 
 def parse_camera(params):
     H = params[:, 0]
@@ -31,7 +33,7 @@ class Camera(nn.Module):
         self.FoVy = focal2fov(self.focal_y, height)
         self.image_width = int(width)
         self.image_height = int(height)
-        self.world_view_transform = torch.linalg.inv(c2w).permute(1,0)
+        self.world_view_transform = torch.linalg.inv(c2w).transpose(-2, -1)
         self.intrinsic = torch.tensor([
             [self.focal_x.squeeze().item(), 0.0, width / 2.0],
             [0.0, self.focal_y.squeeze().item(), height / 2.0],
